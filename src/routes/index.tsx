@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Toaster, toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
