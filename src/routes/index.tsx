@@ -434,6 +434,7 @@ function Index() {
       {open !== null && (
         <StrategyForm initialPlan={open || undefined} onClose={() => setOpen(null)} />
       )}
+      <Toaster theme="dark" position="top-center" />
     </div>
   );
 }
