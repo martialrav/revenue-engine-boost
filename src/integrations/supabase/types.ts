@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          company_name: string
+          created_at: string
+          email: string
+          icp_employee_size: string | null
+          icp_industry: string | null
+          icp_job_function: string | null
+          icp_location: string | null
+          icp_other_details: string | null
+          icp_seniority: string | null
+          id: string
+          job_title: string
+          monthly_outreach_volume: string | null
+          name: string
+          plan_interest: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          email: string
+          icp_employee_size?: string | null
+          icp_industry?: string | null
+          icp_job_function?: string | null
+          icp_location?: string | null
+          icp_other_details?: string | null
+          icp_seniority?: string | null
+          id?: string
+          job_title: string
+          monthly_outreach_volume?: string | null
+          name: string
+          plan_interest?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          email?: string
+          icp_employee_size?: string | null
+          icp_industry?: string | null
+          icp_job_function?: string | null
+          icp_location?: string | null
+          icp_other_details?: string | null
+          icp_seniority?: string | null
+          id?: string
+          job_title?: string
+          monthly_outreach_volume?: string | null
+          name?: string
+          plan_interest?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
