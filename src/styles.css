@@ -300,7 +300,20 @@
 .rev-modal h2 .blue{color:#4f8ef7}
 .rev-modal p.sub{font-size:13px;color:#7a7a8c;line-height:1.7;font-weight:300;margin-bottom:1.75rem}
 .rev-modal .group{margin-bottom:1.5rem}
-.rev-modal .group-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#3a3a4a;margin-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0.5rem}
+.rev-modal .group-head{margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(79,142,247,0.25)}
+.rev-modal .group-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.04em;text-transform:uppercase;color:#f0f0f5;margin-bottom:0.35rem}
+.rev-modal .group-sub{font-family:'Epilogue',sans-serif;font-size:13px;color:#a0a0b0;line-height:1.55;font-weight:300}
+.rev-modal .group-sub strong{color:#4f8ef7;font-weight:500}
+.rev-modal .stepper{display:flex;gap:8px;margin-bottom:1.75rem;padding-bottom:1.25rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+.rev-modal .stepper-item{flex:1;display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:#060608;border:1px solid rgba(255,255,255,0.08);transition:all 0.2s;opacity:0.5}
+.rev-modal .stepper-item.done{opacity:0.85;border-color:rgba(79,142,247,0.3)}
+.rev-modal .stepper-item.active{opacity:1;border-color:#4f8ef7;background:rgba(79,142,247,0.08)}
+.rev-modal .stepper-num{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#4f8ef7}
+.rev-modal .stepper-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.05em;color:#f0f0f5;text-transform:uppercase}
+.rev-modal .step-nav{display:flex;gap:10px;margin-top:0.5rem}
+.rev-modal .back-btn{flex:0 0 auto;padding:14px 22px;background:transparent;color:#a0a0b0;border:1px solid rgba(255,255,255,0.15);font-family:'Epilogue',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.rev-modal .back-btn:hover{color:#f0f0f5;border-color:rgba(255,255,255,0.3)}
+.rev-modal .step-nav .submit-btn{flex:1;margin-top:0}
 .rev-modal .row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
 .rev-modal label{display:block;font-size:11px;color:#7a7a8c;letter-spacing:0.05em;margin-bottom:6px;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
 .rev-modal input,.rev-modal select,.rev-modal textarea{width:100%;background:#060608;border:1px solid rgba(255,255,255,0.1);color:#f0f0f5;padding:10px 12px;font-family:'Epilogue',sans-serif;font-size:13px;font-weight:300;margin-bottom:0.75rem;outline:none;transition:border-color 0.15s}
