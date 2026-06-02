@@ -43,9 +43,11 @@ function StrategyForm({
   onClose: () => void;
 }) {
   const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState(0);
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<LeadForm>({
     resolver: zodResolver(leadSchema),
@@ -74,6 +76,22 @@ function StrategyForm({
     setSubmitted(true);
   };
 
+  const steps = [
+    { n: "01", label: "About you" },
+    { n: "02", label: "Your ideal customer" },
+    { n: "03", label: "Outreach & plan" },
+  ];
+
+  const next = async () => {
+    const fields =
+      step === 0
+        ? (["name", "company_name", "job_title", "email"] as const)
+        : ([] as const);
+    const ok = fields.length ? await trigger(fields as never) : true;
+    if (ok) setStep((s) => Math.min(s + 1, steps.length - 1));
+  };
+  const back = () => setStep((s) => Math.max(s - 1, 0));
+
   return (
     <div className="rev-modal-overlay" onClick={onClose}>
       <div className="rev-modal" onClick={(e) => e.stopPropagation()}>
@@ -97,9 +115,25 @@ function StrategyForm({
               with a quotation and a strategy for booking more sales and appointments.
             </p>
 
+            <div className="stepper">
+              {steps.map((s, i) => (
+                <div
+                  key={s.n}
+                  className={`stepper-item ${i === step ? "active" : ""} ${i < step ? "done" : ""}`}
+                >
+                  <span className="stepper-num">{s.n}</span>
+                  <span className="stepper-label">{s.label}</span>
+                </div>
+              ))}
+            </div>
+
             <form onSubmit={handleSubmit(onSubmit)}>
+              {step === 0 && (
               <div className="group">
-                <div className="group-title">01 · Basic details</div>
+                <div className="group-head">
+                  <div className="group-title">Step 01 — About you</div>
+                  <div className="group-sub">Your details, so we know who we're talking to.</div>
+                </div>
                 <div className="row">
                   <div>
                     <label>Name *</label>
@@ -125,37 +159,51 @@ function StrategyForm({
                   </div>
                 </div>
               </div>
+              )}
 
+              {step === 1 && (
               <div className="group">
-                <div className="group-title">02 · Target ICP</div>
+                <div className="group-head">
+                  <div className="group-title">Step 02 — Your ideal customer (ICP)</div>
+                  <div className="group-sub">
+                    Describe the people <strong>you want to sell to</strong> — not yourself.
+                    The sharper this is, the better the strategy we send back.
+                  </div>
+                </div>
                 <div className="row">
                   <div>
-                    <label>Location</label>
+                    <label>ICP location</label>
                     <input {...register("icp_location")} placeholder="US, EU, APAC..." />
                   </div>
                   <div>
-                    <label>Job function</label>
+                    <label>ICP job function</label>
                     <input {...register("icp_job_function")} placeholder="Marketing, Ops..." />
                   </div>
                 </div>
                 <div className="row">
                   <div>
-                    <label>Seniority</label>
+                    <label>ICP seniority</label>
                     <input {...register("icp_seniority")} placeholder="VP, Director, C-level" />
                   </div>
                   <div>
-                    <label>Employee size</label>
+                    <label>ICP company size</label>
                     <input {...register("icp_employee_size")} placeholder="50-500" />
                   </div>
                 </div>
-                <label>Industry</label>
+                <label>ICP industry</label>
                 <input {...register("icp_industry")} placeholder="SaaS, Fintech, Healthcare..." />
                 <label>Anything else about your ICP</label>
                 <textarea {...register("icp_other_details")} placeholder="Funding stage, tech stack, current pain points..." />
               </div>
+              )}
 
+              {step === 2 && (
+              <>
               <div className="group">
-                <div className="group-title">03 · Outreach today</div>
+                <div className="group-head">
+                  <div className="group-title">Step 03 — Outreach & plan</div>
+                  <div className="group-sub">Where you are today and what you're considering.</div>
+                </div>
                 <label>Current monthly outreach volume</label>
                 <select {...register("monthly_outreach_volume")} defaultValue="">
                   <option value="">Select...</option>
@@ -165,10 +213,6 @@ function StrategyForm({
                   <option value="5000-15000">5,000 – 15,000 / mo</option>
                   <option value="15000+">15,000+ / mo</option>
                 </select>
-              </div>
-
-              <div className="group">
-                <div className="group-title">04 · Plan interest</div>
                 <label>Which plan interests you?</label>
                 <select {...register("plan_interest")} defaultValue={initialPlan ?? ""}>
                   <option value="">Not sure yet</option>
@@ -178,10 +222,25 @@ function StrategyForm({
                   <option value="Full Engine">Full Engine — $900/mo</option>
                 </select>
               </div>
+              </>
+              )}
 
-              <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Get my free strategy →"}
-              </button>
+              <div className="step-nav">
+                {step > 0 && (
+                  <button type="button" className="back-btn" onClick={back}>
+                    ← Back
+                  </button>
+                )}
+                {step < steps.length - 1 ? (
+                  <button type="button" className="submit-btn" onClick={next}>
+                    Continue →
+                  </button>
+                ) : (
+                  <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                    {isSubmitting ? "Sending..." : "Get my free strategy →"}
+                  </button>
+                )}
+              </div>
             </form>
           </>
         )}
