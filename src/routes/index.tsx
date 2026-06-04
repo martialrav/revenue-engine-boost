@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -252,9 +252,69 @@ function StrategyForm({
 function Index() {
   const [open, setOpen] = useState<null | string>(null);
   const openForm = (plan?: string) => setOpen(plan ?? "");
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let mx = 0, my = 0, rx = 0, ry = 0, raf = 0;
+    const onMove = (e: MouseEvent) => {
+      mx = e.clientX; my = e.clientY;
+      if (cursorRef.current) {
+        cursorRef.current.style.left = mx - 4 + "px";
+        cursorRef.current.style.top = my - 4 + "px";
+      }
+    };
+    const tick = () => {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      if (ringRef.current) {
+        ringRef.current.style.left = rx - 16 + "px";
+        ringRef.current.style.top = ry - 16 + "px";
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("mousemove", onMove);
+    raf = requestAnimationFrame(tick);
+
+    const scale = (s: number, r: number) => () => {
+      if (cursorRef.current) cursorRef.current.style.transform = `scale(${s})`;
+      if (ringRef.current) ringRef.current.style.transform = `scale(${r})`;
+    };
+    const enter = scale(2.5, 1.5);
+    const leave = scale(1, 1);
+    const els = document.querySelectorAll(".rev button, .rev a");
+    els.forEach((el) => {
+      el.addEventListener("mouseenter", enter);
+      el.addEventListener("mouseleave", leave);
+    });
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add("visible"), i * 60);
+          }
+        });
+      },
+      { threshold: 0.08 }
+    );
+    document.querySelectorAll(".rev .reveal").forEach((el) => obs.observe(el));
+
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+      els.forEach((el) => {
+        el.removeEventListener("mouseenter", enter);
+        el.removeEventListener("mouseleave", leave);
+      });
+      obs.disconnect();
+    };
+  }, []);
 
   return (
     <div className="rev">
+      <div ref={cursorRef} className="rev-cursor" />
+      <div ref={ringRef} className="rev-cursor-ring" />
       <div className="grid-lines" />
 
       <nav>
