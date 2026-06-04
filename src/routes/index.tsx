@@ -1,10 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/integrations/supabase/client";
-import { Toaster, toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,231 +14,30 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const leadSchema = z.object({
-  name: z.string().trim().min(1, "Required").max(100),
-  company_name: z.string().trim().min(1, "Required").max(150),
-  job_title: z.string().trim().min(1, "Required").max(100),
-  email: z.string().trim().email("Valid email required").max(255),
-  icp_location: z.string().trim().max(200).optional().or(z.literal("")),
-  icp_job_function: z.string().trim().max(150).optional().or(z.literal("")),
-  icp_seniority: z.string().trim().max(150).optional().or(z.literal("")),
-  icp_employee_size: z.string().trim().max(100).optional().or(z.literal("")),
-  icp_industry: z.string().trim().max(150).optional().or(z.literal("")),
-  icp_other_details: z.string().trim().max(1000).optional().or(z.literal("")),
-  monthly_outreach_volume: z.string().trim().max(100).optional().or(z.literal("")),
-  plan_interest: z.string().trim().max(50).optional().or(z.literal("")),
-});
-type LeadForm = z.infer<typeof leadSchema>;
+function StrategyForm({ onClose }: { onClose: () => void }) {
+  const embedRef = useRef<HTMLDivElement>(null);
 
-function StrategyForm({
-  initialPlan,
-  onClose,
-}: {
-  initialPlan?: string;
-  onClose: () => void;
-}) {
-  const [submitted, setSubmitted] = useState(false);
-  const [step, setStep] = useState(0);
-  const {
-    register,
-    handleSubmit,
-    trigger,
-    formState: { errors, isSubmitting },
-  } = useForm<LeadForm>({
-    resolver: zodResolver(leadSchema),
-    defaultValues: { plan_interest: initialPlan ?? "" },
-  });
-
-  const onSubmit = async (values: LeadForm) => {
-    const { error } = await supabase.from("leads").insert({
-      name: values.name,
-      company_name: values.company_name,
-      job_title: values.job_title,
-      email: values.email,
-      icp_location: values.icp_location || null,
-      icp_job_function: values.icp_job_function || null,
-      icp_seniority: values.icp_seniority || null,
-      icp_employee_size: values.icp_employee_size || null,
-      icp_industry: values.icp_industry || null,
-      icp_other_details: values.icp_other_details || null,
-      monthly_outreach_volume: values.monthly_outreach_volume || null,
-      plan_interest: values.plan_interest || null,
-    });
-    if (error) {
-      toast.error("Something went wrong. Please try again.");
-      return;
-    }
-    setSubmitted(true);
-  };
-
-  const steps = [
-    { n: "01", label: "About you" },
-    { n: "02", label: "Your ideal customer" },
-    { n: "03", label: "Outreach & plan" },
-  ];
-
-  const next = async () => {
-    const fields =
-      step === 0
-        ? (["name", "company_name", "job_title", "email"] as const)
-        : ([] as const);
-    const ok = fields.length ? await trigger(fields as never) : true;
-    if (ok) setStep((s) => Math.min(s + 1, steps.length - 1));
-  };
-  const back = () => setStep((s) => Math.max(s - 1, 0));
+  useEffect(() => {
+    // Load Typeform embed script dynamically
+    const script = document.createElement("script");
+    script.src = "https://embed.typeform.com/next/embed.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   return (
     <div className="rev-modal-overlay" onClick={onClose}>
-      <div className="rev-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="rev-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 800, width: "90vw", padding: "2rem" }}>
         <button className="rev-modal-close" onClick={onClose} aria-label="Close">×</button>
-        {submitted ? (
-          <div className="success">
-            <div className="success-icon">⚡</div>
-            <h2>YOU'RE <span className="blue">IN.</span></h2>
-            <p className="sub" style={{ marginTop: "1rem" }}>
-              We'll reach out within 48 hours with a tailored quotation and a
-              strategy for how you can book more sales and appointments.
-            </p>
-            <button className="submit-btn" onClick={onClose}>Close</button>
-          </div>
-        ) : (
-          <>
-            <div className="rev-modal-tag">Free strategy session</div>
-            <h2>UNLOCK YOUR<br/>REVENUE <span className="blue">ENGINE.</span></h2>
-            <p className="sub">
-              Tell us about your business and ICP. We'll reach out within 48 hours
-              with a quotation and a strategy for booking more sales and appointments.
-            </p>
-
-            <div className="stepper">
-              {steps.map((s, i) => (
-                <div
-                  key={s.n}
-                  className={`stepper-item ${i === step ? "active" : ""} ${i < step ? "done" : ""}`}
-                >
-                  <span className="stepper-num">{s.n}</span>
-                  <span className="stepper-label">{s.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <form onSubmit={handleSubmit(onSubmit)}>
-              {step === 0 && (
-              <div className="group">
-                <div className="group-head">
-                  <div className="group-title">Step 01 — About you</div>
-                  <div className="group-sub">Your details, so we know who we're talking to.</div>
-                </div>
-                <div className="row">
-                  <div>
-                    <label>Name *</label>
-                    <input {...register("name")} placeholder="Jane Doe" />
-                    {errors.name && <div className="field-error">{errors.name.message}</div>}
-                  </div>
-                  <div>
-                    <label>Company *</label>
-                    <input {...register("company_name")} placeholder="Acme Inc" />
-                    {errors.company_name && <div className="field-error">{errors.company_name.message}</div>}
-                  </div>
-                </div>
-                <div className="row">
-                  <div>
-                    <label>Job title *</label>
-                    <input {...register("job_title")} placeholder="Head of Sales" />
-                    {errors.job_title && <div className="field-error">{errors.job_title.message}</div>}
-                  </div>
-                  <div>
-                    <label>Work email *</label>
-                    <input {...register("email")} placeholder="jane@acme.com" />
-                    {errors.email && <div className="field-error">{errors.email.message}</div>}
-                  </div>
-                </div>
-              </div>
-              )}
-
-              {step === 1 && (
-              <div className="group">
-                <div className="group-head">
-                  <div className="group-title">Step 02 — Your ideal customer (ICP)</div>
-                  <div className="group-sub">
-                    Describe the people <strong>you want to sell to</strong> — not yourself.
-                    The sharper this is, the better the strategy we send back.
-                  </div>
-                </div>
-                <div className="row">
-                  <div>
-                    <label>ICP location</label>
-                    <input {...register("icp_location")} placeholder="US, EU, APAC..." />
-                  </div>
-                  <div>
-                    <label>ICP job function</label>
-                    <input {...register("icp_job_function")} placeholder="Marketing, Ops..." />
-                  </div>
-                </div>
-                <div className="row">
-                  <div>
-                    <label>ICP seniority</label>
-                    <input {...register("icp_seniority")} placeholder="VP, Director, C-level" />
-                  </div>
-                  <div>
-                    <label>ICP company size</label>
-                    <input {...register("icp_employee_size")} placeholder="50-500" />
-                  </div>
-                </div>
-                <label>ICP industry</label>
-                <input {...register("icp_industry")} placeholder="SaaS, Fintech, Healthcare..." />
-                <label>Anything else about your ICP</label>
-                <textarea {...register("icp_other_details")} placeholder="Funding stage, tech stack, current pain points..." />
-              </div>
-              )}
-
-              {step === 2 && (
-              <>
-              <div className="group">
-                <div className="group-head">
-                  <div className="group-title">Step 03 — Outreach & plan</div>
-                  <div className="group-sub">Where you are today and what you're considering.</div>
-                </div>
-                <label>Current monthly outreach volume</label>
-                <select {...register("monthly_outreach_volume")} defaultValue="">
-                  <option value="">Select...</option>
-                  <option value="0">None — starting fresh</option>
-                  <option value="1-1000">1 – 1,000 / mo</option>
-                  <option value="1000-5000">1,000 – 5,000 / mo</option>
-                  <option value="5000-15000">5,000 – 15,000 / mo</option>
-                  <option value="15000+">15,000+ / mo</option>
-                </select>
-                <label>Which plan interests you?</label>
-                <select {...register("plan_interest")} defaultValue={initialPlan ?? ""}>
-                  <option value="">Not sure yet</option>
-                  <option value="Starter">Starter — $200/mo</option>
-                  <option value="Growth">Growth — $350/mo</option>
-                  <option value="Scale">Scale — $600/mo</option>
-                  <option value="Full Engine">Full Engine — $900/mo</option>
-                </select>
-              </div>
-              </>
-              )}
-
-              <div className="step-nav">
-                {step > 0 && (
-                  <button type="button" className="back-btn" onClick={back}>
-                    ← Back
-                  </button>
-                )}
-                {step < steps.length - 1 ? (
-                  <button type="button" className="submit-btn" onClick={next}>
-                    Continue →
-                  </button>
-                ) : (
-                  <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Get my free strategy →"}
-                  </button>
-                )}
-              </div>
-            </form>
-          </>
-        )}
+        <div className="rev-modal-tag">Free strategy session</div>
+        <h2 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>UNLOCK YOUR REVENUE <span className="blue">ENGINE.</span></h2>
+        <p className="sub" style={{ marginBottom: "1.5rem" }}>
+          Fill out the form below. We'll reach out within 48 hours with a tailored quotation and a strategy for booking more sales.
+        </p>
+        <div data-tf-live="01KT9QSNGYV8JEC8MKMT0PA249" ref={embedRef} style={{ minHeight: 400 }} />
       </div>
     </div>
   );
@@ -551,9 +345,8 @@ function Index() {
       </footer>
 
       {open !== null && (
-        <StrategyForm initialPlan={open || undefined} onClose={() => setOpen(null)} />
+        <StrategyForm onClose={() => setOpen(null)} />
       )}
-      <Toaster theme="dark" position="top-center" />
     </div>
   );
 }
