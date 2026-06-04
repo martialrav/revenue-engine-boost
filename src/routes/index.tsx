@@ -319,7 +319,7 @@ function Index() {
 
       <nav>
         <div className="nav-logo">Revengine<span>HQ</span></div>
-        <div className="nav-contact">rav@revenginehq.co</div>
+        <button className="nav-contact" onClick={() => setOpen("")} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", font: "inherit" }}>Get in touch →</button>
       </nav>
 
       <section className="hero">
@@ -540,14 +540,14 @@ function Index() {
           </div>
           <div className="cta-right">
             <button className="btn-main" onClick={() => openForm()}>Get a free strategy →</button>
-            <a className="btn-ghost" href="mailto:rav@revenginehq.co" style={{ textAlign: "center", textDecoration: "none" }}>rav@revenginehq.co</a>
+            <button className="btn-ghost" onClick={() => openForm()} style={{ textAlign: "center" }}>Request a callback</button>
           </div>
         </div>
       </div>
 
       <footer>
         <div className="f-brand">Revengine<span>HQ</span></div>
-        <div className="f-email">rav@revenginehq.co</div>
+        <div className="f-email">© {new Date().getFullYear()} RevengineHQ</div>
       </footer>
 
       {open !== null && (
