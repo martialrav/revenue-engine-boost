@@ -11,6 +11,13 @@ if (!existsSync(clientDir)) {
   throw new Error("Build output missing. Run `bun run build` or `bun run build:github-pages` first.");
 }
 
+const prerenderedIndex = path.join(clientDir, "index.html");
+if (!existsSync(prerenderedIndex)) {
+  throw new Error(
+    "Prerendered index.html is missing. Enable tanstackStart.prerender in vite.config.ts before exporting.",
+  );
+}
+
 await rm(outputDir, { recursive: true, force: true });
 await mkdir(outputDir, { recursive: true });
 
@@ -20,52 +27,15 @@ for (const entry of await readdir(clientDir, { withFileTypes: true })) {
   });
 }
 
-const assetsDir = path.join(clientDir, "assets");
-const assetFiles = await readdir(assetsDir);
-const cssFile = assetFiles.find((file) => file.endsWith(".css"));
-const jsFiles = assetFiles.filter((file) => file.endsWith(".js"));
+let indexHtml = await readFile(prerenderedIndex, "utf8");
+indexHtml = indexHtml.replace(
+  /<link rel="canonical" href="[^"]*"\/>/,
+  '<link rel="canonical" href="https://revenginelabs.info/" />',
+);
 
-if (!cssFile || jsFiles.length === 0) {
-  throw new Error("Built client assets are missing required CSS or JS files.");
-}
-
-let entryScript = jsFiles[jsFiles.length - 1];
-for (const jsFile of jsFiles) {
-  const contents = await readFile(path.join(assetsDir, jsFile), "utf8");
-  if (contents.includes("hydrateRoot(document") || contents.includes("createRoot(document")) {
-    entryScript = jsFile;
-    break;
-  }
-}
-
-const indexHtml = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RevengineHQ — B2B Outbound System That Fills Your Pipeline</title>
-    <meta name="description" content="RevengineHQ builds the B2B outbound system that fills your pipeline with qualified opportunities." />
-    <meta property="og:title" content="RevengineHQ — We fill your pipeline. You close." />
-    <meta property="og:description" content="B2B outbound system. Cold email, LinkedIn, nurture, handoff — fully managed." />
-    <meta property="og:type" content="website" />
-    <link rel="canonical" href="https://revenginelabs.info/" />
-    <link rel="stylesheet" href="/assets/${cssFile}" />
-  </head>
-  <body>
-    <script type="module" src="/assets/${entryScript}"></script>
-  </body>
-</html>
-`;
-
-const siteFiles = [
-  ["index.html", indexHtml],
-  ["404.html", indexHtml],
-  [".nojekyll", ""],
-];
-
-for (const [fileName, contents] of siteFiles) {
-  await writeFile(path.join(outputDir, fileName), contents, "utf8");
-}
+await writeFile(path.join(outputDir, "index.html"), indexHtml, "utf8");
+await writeFile(path.join(outputDir, "404.html"), indexHtml, "utf8");
+await writeFile(path.join(outputDir, ".nojekyll"), "", "utf8");
 
 const cnamePath = path.join(rootDir, "CNAME");
 if (existsSync(cnamePath)) {
@@ -73,15 +43,18 @@ if (existsSync(cnamePath)) {
   await writeFile(path.join(outputDir, "CNAME"), cname, "utf8");
 }
 
-// GitHub Pages branch deployments only serve / or /docs — publish the bundle at
-// the repository root so custom domains and *.github.io URLs resolve index.html.
 const rootAssetsDir = path.join(rootDir, "assets");
 await rm(rootAssetsDir, { recursive: true, force: true });
 
-for (const [fileName, contents] of siteFiles) {
-  await writeFile(path.join(rootDir, fileName), contents, "utf8");
+for (const entry of await readdir(outputDir, { withFileTypes: true })) {
+  if (entry.name === "github-pages") continue;
+  const from = path.join(outputDir, entry.name);
+  const to = path.join(rootDir, entry.name);
+  if (entry.isDirectory()) {
+    await cp(from, to, { recursive: true });
+  } else {
+    await cp(from, to);
+  }
 }
-
-await cp(path.join(outputDir, "assets"), rootAssetsDir, { recursive: true });
 
 console.log("GitHub Pages bundle ready in ./github-pages and repository root");
