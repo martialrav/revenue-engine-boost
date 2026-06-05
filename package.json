@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "build:github-pages": "vite build && rm -rf github-pages && mkdir -p github-pages/assets && cp -R dist/client/assets/. github-pages/assets/ && printf '%s\n' '<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"0; url=/\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>RevengineHQ</title></head><body></body></html>' > github-pages/index.html && cp github-pages/index.html github-pages/404.html && cp CNAME github-pages/CNAME",
+    "build:github-pages": "vite build && node scripts/export-github-pages.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
