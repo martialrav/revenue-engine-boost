@@ -57,9 +57,15 @@ const indexHtml = `<!DOCTYPE html>
 </html>
 `;
 
-await writeFile(path.join(outputDir, "index.html"), indexHtml, "utf8");
-await writeFile(path.join(outputDir, "404.html"), indexHtml, "utf8");
-await writeFile(path.join(outputDir, ".nojekyll"), "", "utf8");
+const siteFiles = [
+  ["index.html", indexHtml],
+  ["404.html", indexHtml],
+  [".nojekyll", ""],
+];
+
+for (const [fileName, contents] of siteFiles) {
+  await writeFile(path.join(outputDir, fileName), contents, "utf8");
+}
 
 const cnamePath = path.join(rootDir, "CNAME");
 if (existsSync(cnamePath)) {
@@ -67,4 +73,15 @@ if (existsSync(cnamePath)) {
   await writeFile(path.join(outputDir, "CNAME"), cname, "utf8");
 }
 
-console.log("GitHub Pages bundle ready in ./github-pages");
+// GitHub Pages branch deployments only serve / or /docs — publish the bundle at
+// the repository root so custom domains and *.github.io URLs resolve index.html.
+const rootAssetsDir = path.join(rootDir, "assets");
+await rm(rootAssetsDir, { recursive: true, force: true });
+
+for (const [fileName, contents] of siteFiles) {
+  await writeFile(path.join(rootDir, fileName), contents, "utf8");
+}
+
+await cp(path.join(outputDir, "assets"), rootAssetsDir, { recursive: true });
+
+console.log("GitHub Pages bundle ready in ./github-pages and repository root");
