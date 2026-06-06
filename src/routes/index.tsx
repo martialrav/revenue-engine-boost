@@ -292,9 +292,14 @@ function Index() {
                 <div className="p-highlight">
                   <div className="p-highlight-text">{p.best}</div>
                 </div>
-                <button className="p-cta" onClick={() => openForm(p.name)}>
-                  Get free strategy →
-                </button>
+                <a
+                  className="p-cta"
+                  href={STRIPE_LINKS[p.name] || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Choose {p.name} →
+                </a>
               </div>
             ))}
           </div>
