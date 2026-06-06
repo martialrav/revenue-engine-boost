@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 
+/* Replace these placeholders with your Stripe Payment Link URLs */
+const STRIPE_LINKS: Record<string, string> = {
+  STARTER: "https://buy.stripe.com/YOUR_STARTER_LINK",
+  GROWTH: "https://buy.stripe.com/YOUR_GROWTH_LINK",
+  SCALE: "https://buy.stripe.com/YOUR_SCALE_LINK",
+  "FULL ENGINE": "https://buy.stripe.com/YOUR_FULL_ENGINE_LINK",
+};
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
