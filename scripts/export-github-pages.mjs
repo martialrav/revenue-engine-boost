@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -11,13 +11,6 @@ if (!existsSync(clientDir)) {
   throw new Error("Build output missing. Run `bun run build` or `bun run build:github-pages` first.");
 }
 
-const prerenderedIndex = path.join(clientDir, "index.html");
-if (!existsSync(prerenderedIndex)) {
-  throw new Error(
-    "Prerendered index.html is missing. Enable tanstackStart.prerender in vite.config.ts before exporting.",
-  );
-}
-
 await rm(outputDir, { recursive: true, force: true });
 await mkdir(outputDir, { recursive: true });
 
@@ -27,11 +20,50 @@ for (const entry of await readdir(clientDir, { withFileTypes: true })) {
   });
 }
 
-let indexHtml = await readFile(prerenderedIndex, "utf8");
-indexHtml = indexHtml.replace(
-  /<link rel="canonical" href="[^"]*"\/>/,
-  '<link rel="canonical" href="https://revenginelabs.info/" />',
-);
+// Build a static SPA shell index.html from the built client assets.
+const assetsDir = path.join(clientDir, "assets");
+const assetFiles = existsSync(assetsDir) ? await readdir(assetsDir) : [];
+const jsEntries = assetFiles.filter((f) => f.startsWith("index-") && f.endsWith(".js"));
+const cssEntries = assetFiles.filter((f) => f.endsWith(".css"));
+
+// Pick the largest JS file as the entry (TanStack Start emits two index-*.js;
+// the entry is the larger one that imports the chunked one).
+let entryJs = jsEntries[0];
+let entrySize = 0;
+for (const f of jsEntries) {
+  const s = await stat(path.join(assetsDir, f));
+  if (s.size > entrySize) {
+    entrySize = s.size;
+    entryJs = f;
+  }
+}
+
+const cssLinks = cssEntries.map((f) => `    <link rel="stylesheet" href="/assets/${f}" />`).join("\n");
+const moduleLinks = jsEntries
+  .filter((f) => f !== entryJs)
+  .map((f) => `    <link rel="modulepreload" href="/assets/${f}" />`)
+  .join("\n");
+
+const indexHtml = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RevengineHQ — B2B Outbound System That Fills Your Pipeline</title>
+    <meta name="description" content="We build the cold email and outbound system that puts your offer in front of decision makers — consistently. From $200/mo, live in 14 days." />
+    <meta property="og:title" content="RevengineHQ — We fill your pipeline. You close." />
+    <meta property="og:description" content="B2B outbound system. Cold email, LinkedIn, nurture, handoff — fully managed. From $200/mo, live in 14 days." />
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href="https://revenginelabs.info/" />
+${cssLinks}
+${moduleLinks}
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/assets/${entryJs}"></script>
+  </body>
+</html>
+`;
 
 await writeFile(path.join(outputDir, "index.html"), indexHtml, "utf8");
 await writeFile(path.join(outputDir, "404.html"), indexHtml, "utf8");
