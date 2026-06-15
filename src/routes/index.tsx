@@ -247,13 +247,13 @@ function Index() {
                   [true,"Under 3% bounce rate"],[true,"Monthly performance report"],[true,"1 copy revision/month"],
                   [false,"LinkedIn outreach"],[false,"CRM integration"],[false,"Client domains"],
                 ], best:"Best for: Testing outbound for the first time" },
-              { tier:"Tier 02", name:"GROWTH", price:"350", domain:"Your domains", domainCls:"own", hot:false,
+              { tier:"Tier 02", name:"GROWTH", price:"350", domain:"Shared domains", domainCls:"shared", hot:false,
                 items:[
                   [true,"3,000 verified contacts/mo"],[true,"15,000 emails sent (5-step)"],[true,"2 sequences A/B tested"],
                   [true,"200 LinkedIn touches/mo"],[true,"CRM integration"],[true,"Under 3% bounce rate"],
                   [true,"Bi-weekly report"],[true,"2 copy revisions/month"],[false,"Nurture sequences"],
                 ], best:"Best for: Consistent pipeline building" },
-              { tier:"Tier 03", name:"SCALE", price:"600", domain:"Your domains", domainCls:"own", hot:true,
+              { tier:"Tier 03", name:"SCALE", price:"600", domain:"Shared domains", domainCls:"shared", hot:true,
                 items:[
                   [true,"7,000 verified contacts/mo"],[true,"35,000 emails sent (5-step)"],[true,"Multiple sequences, full A/B"],
                   [true,"500 LinkedIn touches/mo"],[true,"Full nurture sequence"],[true,"Under 3% bounce rate"],
@@ -284,14 +284,6 @@ function Index() {
                 <div className="p-highlight">
                   <div className="p-highlight-text">{p.best}</div>
                 </div>
-                <a
-                  className="p-cta"
-                  href={STRIPE_LINKS[p.name] || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Choose {p.name} →
-                </a>
               </div>
             ))}
           </div>
