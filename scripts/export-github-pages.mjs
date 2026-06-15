@@ -43,18 +43,4 @@ if (existsSync(cnamePath)) {
   await writeFile(path.join(outputDir, "CNAME"), cname, "utf8");
 }
 
-const rootAssetsDir = path.join(rootDir, "assets");
-await rm(rootAssetsDir, { recursive: true, force: true });
-
-for (const entry of await readdir(outputDir, { withFileTypes: true })) {
-  if (entry.name === "github-pages") continue;
-  const from = path.join(outputDir, entry.name);
-  const to = path.join(rootDir, entry.name);
-  if (entry.isDirectory()) {
-    await cp(from, to, { recursive: true });
-  } else {
-    await cp(from, to);
-  }
-}
-
-console.log("GitHub Pages bundle ready in ./github-pages and repository root");
+console.log("GitHub Pages bundle ready in ./github-pages");
