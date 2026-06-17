@@ -44,6 +44,25 @@ const moduleLinks = jsEntries
   .map((f) => `    <link rel="modulepreload" href="/assets/${f}" />`)
   .join("\n");
 
+const routerBootstrap = JSON.stringify({
+  manifest: {
+    routes: {
+      __root__: {
+        preloads: [`/assets/${entryJs}`],
+        scripts: [{ attrs: { type: "module", async: true, src: `/assets/${entryJs}` } }],
+      },
+      "/": {
+        preloads: jsEntries.filter((f) => f !== entryJs).map((f) => `/assets/${f}`),
+      },
+    },
+  },
+  matches: [
+    { i: "__root__\0", u: Date.now(), s: "success", ssr: true },
+    { i: "\0\0", u: Date.now(), s: "success", ssr: true },
+  ],
+  lastMatchId: "\0\0",
+}).replace(/</g, "\\u003c");
+
 const indexHtml = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -59,7 +78,30 @@ ${cssLinks}
 ${moduleLinks}
   </head>
   <body>
-    <div id="root"></div>
+    <script>
+      (self.$R = self.$R || {}).tsr = [];
+      self.$_TSR = {
+        h() { this.hydrated = true; this.c(); },
+        e() { this.streamEnded = true; this.c(); },
+        c() {
+          if (this.hydrated && this.streamEnded) {
+            const cleanup = () => {
+              if (self.$_TSR?.hydrated && self.$_TSR?.streamEnded) {
+                delete self.$_TSR;
+                delete self.$R.tsr;
+              }
+            };
+            document.readyState === "loading"
+              ? document.addEventListener("DOMContentLoaded", cleanup, { once: true })
+              : cleanup();
+          }
+        },
+        p(script) { this.initialized ? script() : this.buffer.push(script); },
+        buffer: [],
+      };
+      self.$_TSR.router = ${routerBootstrap};
+      self.$_TSR.e();
+    </script>
     <script type="module" src="/assets/${entryJs}"></script>
   </body>
 </html>
